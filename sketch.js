@@ -1,9 +1,9 @@
 const r = require("raylib");
-const m = require("./math")
-const c = require("./config");
-const g = require("./grid");
-const s = require("./snake");
-const a = require("./apples");
+const Math = require("./math");
+const Config = require("./config");
+const Grid = require("./grid");
+const Snake = require("./snake");
+const Apple = require("./apples");
 const Game = require("./gameState");
 
 function running() {
@@ -11,62 +11,70 @@ function running() {
 }
 
 function setup() {
-
   r.SetTraceLogLevel(r.LOG_NONE);
-  r.InitWindow(c.window.width, c.window.height, "snakeGame");
+  r.InitWindow(Config.window.width, Config.window.height, "snakeGame");
   r.SetTargetFPS(5);
 
-  const grid = g.create(c.window);
-  const snake = s.create();
-  const apples = [a.create()];
-  const gameState = Game.create();
+  return initGame();
+}
 
-  return { grid, snake, apples, gameState };
+function initGame(world = {}) {
+  world.grid = Grid.create(Config.window);
+  world.snake = Snake.create();
+  world.apples = [Apple.create()];
+  world.gameState = Game.create();
+
+  return world;
 }
 
 function momentKeysArePressed(direction) {
-  if (r.IsKeyPressed(r.KEY_RIGHT)) { direction.x = 1; direction.y = 0 }
-  if (r.IsKeyPressed(r.KEY_LEFT)) { direction.x = -1; direction.y = 0 }
-  if (r.IsKeyPressed(r.KEY_UP)) { direction.x = 0; direction.y = -1 }
-  if (r.IsKeyPressed(r.KEY_DOWN)) { direction.x = 0; direction.y = 1 }
-}
-
-function reset(w) {
-
-  w.grid = g.create(c.window);
-  w.snake = s.create();
-  w.apples = [a.create()];
-  w.gameState = Game.create();
-
+  if (r.IsKeyPressed(r.KEY_RIGHT)) {
+    // moveSnakeRight()
+    direction.x = 1;
+    direction.y = 0;
+  }
+  if (r.IsKeyPressed(r.KEY_LEFT)) {
+    // moveSnakeLeft()
+    direction.x = -1;
+    direction.y = 0;
+  }
+  if (r.IsKeyPressed(r.KEY_UP)) {
+    direction.x = 0;
+    direction.y = -1;
+  }
+  if (r.IsKeyPressed(r.KEY_DOWN)) {
+    direction.x = 0;
+    direction.y = 1;
+  }
 }
 
 function update(w) {
-
   if (w.gameState.isGameOver) {
     if (r.IsKeyPressed(r.KEY_ENTER)) {
-      reset(w)
+      initGame(w);
     }
     return;
   }
 
-  const hasCollided = m.checkCollision(w.snake.position[0], w.apples[0].position);
+  const hasCollided = Math.checkCollision(
+    w.snake.position[0],
+    w.apples[0].position,
+  );
 
-  momentKeysArePressed(w.snake.direction);
-  s.update(w.snake, hasCollided);
-  a.update(w.apples, w.snake, hasCollided, w.gameState);
-
-  w.gameState.isGameOver = Game.update(w.snake.position);
-
+  momentKeysArePressed(w.snake.direction); // moveSnake
+  Snake.update(w.snake, hasCollided);
+  Apple.update(w.apples, w.snake, hasCollided);
+  Game.update(w.gameState, w.snake.position, hasCollided);
 }
 
 function draw(w) {
   r.BeginDrawing();
   r.ClearBackground(r.BLACK);
 
-  g.draw(w.grid)
-  s.draw(w.snake)
-  a.draw(w.apples)
-  Game.draw(w.gameState)
+  Grid.draw(w.grid);
+  Snake.draw(w.snake);
+  Apple.draw(w.apples);
+  Game.draw(w.gameState);
 
   r.EndDrawing();
 }
