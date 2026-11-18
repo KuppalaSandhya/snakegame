@@ -34,7 +34,6 @@ function momentKeysArePressed(direction) {
     direction.y = 0;
   }
   if (r.IsKeyPressed(r.KEY_LEFT)) {
-    // moveSnakeLeft()
     direction.x = -1;
     direction.y = 0;
   }
